@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대화형 자바 문법 학습</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .nav-link.active { background-color: #0d9488; color: white; }
+        .nav-link { transition: all 0.2s ease-in-out; }
+        .code-block { background-color: #1f2937; color: #d1d5db; font-family: 'Courier New', Courier, monospace; }
+        .console { background-color: #374151; color: #9ca3af; font-family: 'Courier New', Courier, monospace; min-height: 100px; white-space: pre-wrap; }
+        .console-output { color: #e5e7eb; }
+    </style>
+    <!-- Chosen Palette: Warm Neutrals (Stone, Teal) -->
+    <!-- Application Structure Plan: A tabbed/sidebar navigation SPA. Sections for Overview, Variables, Operators, Control Flow (with sub-tabs), and Methods. This non-linear structure allows users to easily jump to specific topics for learning or review, which is more effective than a linear document. Key interaction is a simulated "Run Code" feature with a console output, making the learning process active and providing immediate feedback. -->
+    <!-- Visualization & Content Choices: Report Info: Java code examples -> Goal: Demonstrate code execution -> Presentation Method: Code block with a 'Run' button and a console output area -> Interaction: User clicks 'Run' to see the output. For the 'if' statement, an input slider allows the user to change the variable and see how the output changes, directly illustrating conditional logic. This is implemented with vanilla JS. -> Justification: Active interaction is superior to passive reading for learning programming concepts. -> Library/Method: Vanilla JS for all interactions. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-stone-800">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+        <!-- Sidebar Navigation -->
+        <nav class="w-full md:w-64 bg-white shadow-lg">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold text-teal-700">Java 기초</h1>
+                <p class="text-sm text-stone-500 mt-1">대화형 학습 가이드</p>
+            </div>
+            <ul class="mt-2" id="main-nav">
+                <li><a href="#" class="nav-link active block p-4 text-stone-700 hover:bg-teal-50" data-target="overview">개요</a></li>
+                <li><a href="#" class="nav-link block p-4 text-stone-700 hover:bg-teal-50" data-target="variables">변수 (Variables)</a></li>
+                <li><a href="#" class="nav-link block p-4 text-stone-700 hover:bg-teal-50" data-target="operators">연산자 (Operators)</a></li>
+                <li><a href="#" class="nav-link block p-4 text-stone-700 hover:bg-teal-50" data-target="control-flow">제어문 (Control Flow)</a></li>
+                <li><a href="#" class="nav-link block p-4 text-stone-700 hover:bg-teal-50" data-target="methods">메서드 (Methods)</a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 md:p-10">
+            <!-- Overview Section -->
+            <section id="overview" class="content-section">
+                <h2 class="text-3xl font-bold mb-4">자바 기본 문법 개요</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="mb-4">
+                        이 대화형 가이드는 자바 프로그래밍의 핵심 기본 문법을 소개합니다. 왼쪽 메뉴를 클릭하여 각 주제를 탐색하고, 코드 예제를 직접 실행해보며 개념을 익힐 수 있습니다.
+                    </p>
+                    <p class="mb-4">
+                        자바는 **객체지향 프로그래밍 언어**로, 배우기 쉽고 플랫폼에 독립적이라는 강력한 장점을 가지고 있습니다. 모든 자바 코드는 **클래스(Class)**라는 단위 안에 작성되며, 프로그램의 실행은 항상 `main` 메서드에서 시작됩니다.
+                    </p>
+                    <p>
+                        각 섹션에서는 설명과 함께 실행 가능한 코드 블록이 제공됩니다. '코드 실행' 버튼을 눌러 가상 콘솔에서 결과를 즉시 확인해보세요. 이를 통해 코드의 작동 방식을 직관적으로 이해할 수 있습니다.
+                    </p>
+                </div>
+            </section>
+
+            <!-- Variables Section -->
+            <section id="variables" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-4">1. 변수 (Variables)</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="mb-4">
+                        변수는 데이터를 저장하기 위한 메모리 공간입니다. 자바에서는 변수를 사용하기 전에 반드시 어떤 종류의 데이터를 저장할 것인지 **타입(type)**을 명시해야 합니다. 이 섹션에서는 자바의 기본 데이터 타입과 참조 데이터 타입에 대해 알아보고, 실제 코드 예제를 통해 변수를 선언하고 사용하는 방법을 확인합니다.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">데이터 타입</h3>
+                            <p class="font-semibold text-teal-600">기본 데이터 타입 (Primitive)</p>
+                            <ul class="list-disc list-inside mb-3 text-sm">
+                                <li><code>int</code>: 정수 (예: 10, -5)</li>
+                                <li><code>double</code>: 실수 (예: 3.14)</li>
+                                <li><code>boolean</code>: 논리값 (true 또는 false)</li>
+                                <li><code>char</code>: 단일 문자 (예: 'A')</li>
+                            </ul>
+                            <p class="font-semibold text-teal-600">참조 데이터 타입 (Reference)</p>
+                            <ul class="list-disc list-inside text-sm">
+                                <li><code>String</code>: 문자열 (예: "안녕하세요")</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">예제 코드</h3>
+                            <pre class="code-block p-4 rounded-md text-sm"><code>public class VariableExample {
+    public static void main(String[] args) {
+        int age = 25;
+        double weight = 68.5;
+        String name = "김철수";
+        boolean isStudent = true;
+
+        System.out.println("이름: " + name);
+        System.out.println("나이: " + age);
+        System.out.println("체중: " + weight);
+        System.out.println("학생인가요?: " + isStudent);
+    }
+}</code></pre>
+                            <button class="run-code-btn mt-4 w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700" data-code="variables">코드 실행</button>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h3 class="text-xl font-semibold mb-2">실행 결과 (콘솔)</h3>
+                        <div id="console-variables" class="console p-4 rounded-md text-sm">
+                            &gt; 실행 버튼을 눌러주세요.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Operators Section -->
+            <section id="operators" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-4">2. 연산자 (Operators)</h2>
+                 <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="mb-4">
+                        연산자는 변수나 값을 가지고 계산을 수행하는 특별한 기호입니다. 덧셈, 뺄셈과 같은 기본적인 산술 연산부터 값들을 비교하거나 논리적인 판단을 내리는 데 사용됩니다. 이 섹션에서는 자바에서 자주 사용되는 연산자들의 종류를 살펴보고, 코드를 통해 각 연산자가 어떻게 동작하는지 직접 확인해봅니다.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">주요 연산자</h3>
+                            <p class="font-semibold text-teal-600">산술 연산자</p>
+                            <p class="mb-3 text-sm"><code>+</code>, <code>-</code>, <code>*</code>, <code>/</code> (나누기), <code>%</code> (나머지)</p>
+                            <p class="font-semibold text-teal-600">비교 연산자</p>
+                            <p class="mb-3 text-sm"><code>==</code> (같다), <code>!=</code> (다르다), <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code></p>
+                             <p class="font-semibold text-teal-600">논리 연산자</p>
+                            <p class="text-sm"><code>&&</code> (AND), <code>||</code> (OR), <code>!</code> (NOT)</p>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">예제 코드</h3>
+                            <pre class="code-block p-4 rounded-md text-sm"><code>public class OperatorExample {
+    public static void main(String[] args) {
+        int a = 10;
+        int b = 3;
+
+        System.out.println("a + b = " + (a + b));
+        System.out.println("a / b = " + (a / b));
+        System.out.println("a % b = " + (a % b));
+        System.out.println("a > b = " + (a > b));
+        System.out.println("a == 10 && b == 3 = " + (a == 10 && b == 3));
+    }
+}</code></pre>
+                            <button class="run-code-btn mt-4 w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700" data-code="operators">코드 실행</button>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h3 class="text-xl font-semibold mb-2">실행 결과 (콘솔)</h3>
+                        <div id="console-operators" class="console p-4 rounded-md text-sm">
+                            &gt; 실행 버튼을 눌러주세요.
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Control Flow Section -->
+            <section id="control-flow" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-4">3. 제어문 (Control Flow)</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="mb-4">
+                        제어문은 프로그램의 실행 흐름을 원하는 대로 제어하는 문법입니다. 특정 조건이 참일 때만 코드를 실행하거나, 특정 코드를 여러 번 반복 실행하는 등의 작업을 할 수 있습니다. 제어문을 통해 프로그램은 더 유연하고 동적인 작업을 수행할 수 있게 됩니다.
+                    </p>
+                    
+                    <!-- If Statement -->
+                    <div class="mb-8">
+                        <h3 class="text-2xl font-semibold border-b pb-2 mb-4">3-1. 조건문 (if-else)</h3>
+                        <p class="mb-4">
+                            조건문은 주어진 조건식의 결과(true 또는 false)에 따라 실행할 코드를 결정합니다. <code>if</code>문은 가장 기본적인 조건문으로, '만약 ~라면 ~를 실행하라'는 의미를 가집니다.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">점수(score)를 조절해보세요</h4>
+                                <p class="text-sm mb-2">슬라이더를 움직여 `score` 변수 값을 변경한 후, '코드 실행' 버튼을 눌러 결과가 어떻게 바뀌는지 확인하세요.</p>
+                                <div class="flex items-center gap-4 my-4">
+                                    <input type="range" id="score-slider" min="0" max="100" value="85" class="w-full">
+                                    <span id="score-value" class="font-bold text-teal-700 w-12 text-center">85</span>
+                                </div>
+                                <button class="run-code-btn w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700" data-code="if-else">코드 실행</button>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">예제 코드</h4>
+                                <pre class="code-block p-4 rounded-md text-sm"><code>public class IfExample {
+    public static void main(String[] args) {
+        int score = 85; // 슬라이더 값으로 변경됩니다.
+
+        if (score >= 90) {
+            System.out.println("A 학점입니다.");
+        } else if (score >= 80) {
+            System.out.println("B 학점입니다.");
+        } else {
+            System.out.println("C 학점 이하입니다.");
+        }
+    }
+}</code></pre>
+                            </div>
+                        </div>
+                         <div class="mt-6">
+                            <h4 class="text-lg font-semibold mb-2">실행 결과 (콘솔)</h4>
+                            <div id="console-if-else" class="console p-4 rounded-md text-sm">
+                                &gt; 슬라이더를 조절하고 실행 버튼을 눌러주세요.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loop Statements -->
+                    <div>
+                        <h3 class="text-2xl font-semibold border-b pb-2 mb-4">3-2. 반복문 (for, while)</h3>
+                        <p class="mb-4">
+                            반복문은 특정 코드를 여러 번 반복해서 실행해야 할 때 사용합니다. <code>for</code>문은 주로 반복 횟수가 정해진 경우에, <code>while</code>문은 특정 조건이 만족되는 동안 계속 반복해야 할 때 유용합니다.
+                        </p>
+                        <div class="grid md:grid-cols-2 gap-8">
+                            <!-- For Loop -->
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">for 문 예제</h4>
+                                <pre class="code-block p-4 rounded-md text-sm"><code>public class ForExample {
+    public static void main(String[] args) {
+        for (int i = 0; i < 5; i++) {
+            System.out.println("반복 횟수: " + (i + 1));
+        }
+    }
+}</code></pre>
+                                <button class="run-code-btn mt-4 w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700" data-code="for-loop">코드 실행</button>
+                                <div class="mt-4">
+                                    <h5 class="font-semibold mb-2">실행 결과</h5>
+                                    <div id="console-for-loop" class="console p-4 rounded-md text-sm">&gt; 실행 버튼을 눌러주세요.</div>
+                                </div>
+                            </div>
+                            <!-- While Loop -->
+                            <div>
+                                <h4 class="text-lg font-semibold mb-2">while 문 예제</h4>
+                                <pre class="code-block p-4 rounded-md text-sm"><code>public class WhileExample {
+    public static void main(String[] args) {
+        int count = 0;
+        while (count < 3) {
+            System.out.println("Count: " + count);
+            count++;
+        }
+    }
+}</code></pre>
+                                <button class="run-code-btn mt-4 w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700" data-code="while-loop">코드 실행</button>
+                                <div class="mt-4">
+                                    <h5 class="font-semibold mb-2">실행 결과</h5>
+                                    <div id="console-while-loop" class="console p-4 rounded-md text-sm">&gt; 실행 버튼을 눌러주세요.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Methods Section -->
+            <section id="methods" class="content-section hidden">
+                <h2 class="text-3xl font-bold mb-4">4. 메서드 (Methods)</h2>
+                <div class="bg-white p-6 rounded-lg shadow-md">
+                    <p class="mb-4">
+                        메서드는 특정 기능을 수행하는 코드의 묶음입니다. 한번 만들어두면 필요할 때마다 호출하여 재사용할 수 있어 코드의 중복을 줄이고 구조를 명확하게 만들어줍니다. 이 섹션에서는 메서드를 정의하고 호출하는 기본적인 방법을 알아봅니다.
+                    </p>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">메서드 구조</h3>
+                            <p class="mb-4"><code>public static int add(int a, int b)</code></p>
+                            <ul class="list-disc list-inside text-sm space-y-2">
+                                <li><code>public static</code>: 접근 제어자와 키워드입니다.</li>
+                                <li><code>int</code>: **반환 타입**. 메서드가 실행된 후 돌려주는 값의 종류입니다.</li>
+                                <li><code>add</code>: **메서드 이름**.</li>
+                                <li><code>(int a, int b)</code>: **매개변수(파라미터)**. 메서드가 작업을 수행하는 데 필요한 값을 외부에서 전달받는 통로입니다.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold mb-2">예제 코드</h3>
+                            <pre class="code-block p-4 rounded-md text-sm"><code>public class MethodExample {
+    public static void main(String[] args) {
+        int sum = add(5, 3);
+        System.out.println("두 수의 합: " + sum);
+    }
+
+    // 두 정수를 더하는 메서드
+    public static int add(int a, int b) {
+        return a + b;
+    }
+}</code></pre>
+                            <button class="run-code-btn mt-4 w-full bg-teal-600 text-white py-2 rounded-md hover:bg-teal-700" data-code="methods">코드 실행</button>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <h3 class="text-xl font-semibold mb-2">실행 결과 (콘솔)</h3>
+                        <div id="console-methods" class="console p-4 rounded-md text-sm">
+                            &gt; 실행 버튼을 눌러주세요.
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const navLinks = document.querySelectorAll('.nav-link');
+    const contentSections = document.querySelectorAll('.content-section');
+    const runCodeButtons = document.querySelectorAll('.run-code-btn');
+    const scoreSlider = document.getElementById('score-slider');
+    const scoreValue = document.getElementById('score-value');
+
+    // Navigation logic
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetId = link.dataset.target;
+
+            navLinks.forEach(nav => nav.classList.remove('active'));
+            link.classList.add('active');
+
+            contentSections.forEach(section => {
+                if (section.id === targetId) {
+                    section.classList.remove('hidden');
+                } else {
+                    section.classList.add('hidden');
+                }
+            });
+        });
+    });
+
+    // Score slider logic
+    if (scoreSlider) {
+        scoreSlider.addEventListener('input', () => {
+            scoreValue.textContent = scoreSlider.value;
+        });
+    }
+
+    // Code execution simulation
+    runCodeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const codeType = button.dataset.code;
+            const consoleId = `console-${codeType}`;
+            const consoleEl = document.getElementById(consoleId);
+            let output = '';
+
+            switch (codeType) {
+                case 'variables':
+                    output = `이름: 김철수\n나이: 25\n체중: 68.5\n학생인가요?: true`;
+                    break;
+                case 'operators':
+                    output = `a + b = 13\na / b = 3\na % b = 1\na > b = true\na == 10 && b == 3 = true`;
+                    break;
+                case 'if-else':
+                    const score = parseInt(scoreSlider.value);
+                    if (score >= 90) {
+                        output = `score = ${score}\n결과: A 학점입니다.`;
+                    } else if (score >= 80) {
+                        output = `score = ${score}\n결과: B 학점입니다.`;
+                    } else {
+                        output = `score = ${score}\n결과: C 학점 이하입니다.`;
+                    }
+                    break;
+                case 'for-loop':
+                    for (let i = 0; i < 5; i++) {
+                        output += `반복 횟수: ${i + 1}\n`;
+                    }
+                    output = output.trim();
+                    break;
+                case 'while-loop':
+                    let count = 0;
+                    while (count < 3) {
+                        output += `Count: ${count}\n`;
+                        count++;
+                    }
+                    output = output.trim();
+                    break;
+                case 'methods':
+                    output = `두 수의 합: 8`;
+                    break;
+            }
+            
+            consoleEl.innerHTML = `&gt; <span class="console-output">${output.replace(/\n/g, '<br>&gt; ')}</span>`;
+        });
+    });
+});
+</script>
+
+</body>
+</html>
