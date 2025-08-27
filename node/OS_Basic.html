@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대화형 OS 학습 허브</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Study Palette -->
+    <!-- Application Structure Plan: The application is structured as an interactive dashboard with four main sections based on core OS functions. It now includes a synchronization simulator under Process Management and a more detailed explanation of virtual memory under Memory Management. This functional grouping allows users to explore topics non-linearly. Key interactions include visualizers for CPU scheduling and page replacement, plus a new interactive simulation for the producer-consumer problem, transforming abstract concepts into tangible experiences. This design prioritizes active learning and user engagement over passive reading. -->
+    <!-- Visualization & Content Choices: CPU Scheduling -> Goal: Compare -> Horizontal Bar Chart (Gantt-style) -> Interaction: Select algorithm (FCFS, SJF, RR) to re-render chart -> Justification: Visually demonstrates how different algorithms prioritize and execute processes over time -> Library: Chart.js. Synchronization -> Goal: Explain a problem -> Producer-Consumer problem with HTML/CSS buffer -> Interaction: Click "Produce" or "Consume" to simulate a locked buffer -> Justification: Visually demonstrates the need for mutual exclusion and prevents race conditions -> Method: Vanilla JS DOM manipulation. Virtual Memory -> Goal: Understand a concept -> Textual explanation linked to an existing Page Replacement Simulator -> Interaction: Use existing FIFO/LRU buttons to see how virtual memory pages are managed -> Justification: Provides a robust framework for a concept that is already being demonstrated. File System Structure -> Goal: Organize -> Clickable HTML/CSS Tree -> Interaction: Hover/Click to highlight parts -> Justification: Provides a simple, intuitive representation of hierarchical data -> Method: HTML/CSS. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        .nav-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .nav-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .nav-card.active {
+            border-color: #0d9488;
+            background-color: #f0fdfa;
+        }
+        .content-section {
+            display: none;
+        }
+        .content-section.active {
+            display: block;
+        }
+        .btn-teal {
+            background-color: #0d9488;
+            color: white;
+        }
+        .btn-teal:hover {
+            background-color: #0f766e;
+        }
+        .btn-teal.active {
+            background-color: #134e4a;
+            box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-stone-50 text-slate-800">
+
+    <div class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-teal-800 mb-2">대화형 운영체제 학습 허브</h1>
+            <p class="text-lg text-slate-600">핵심 개념을 시각적으로 탐색하고 이해해 보세요.</p>
+        </header>
+
+        <section id="introduction" class="mb-12 bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+            <h2 class="text-2xl font-bold text-teal-700 mb-4">운영체제란 무엇일까요?</h2>
+            <p class="text-slate-700 leading-relaxed">
+                운영체제(Operating System, OS)는 컴퓨터 하드웨어와 소프트웨어를 관리하는 핵심 시스템 소프트웨어입니다. 복잡한 하드웨어 제어를 추상화하여, 사용자와 응용 프로그램이 컴퓨터를 쉽고 효율적으로 사용할 수 있도록 지원하는 중재자 역할을 합니다. 이 학습 허브는 운영체제의 주요 기능들을 중심으로 구성되어 있으며, 각 기능을 클릭하여 핵심 개념과 동작 원리를 대화형으로 학습할 수 있습니다.
+            </p>
+        </section>
+
+        <nav id="main-nav" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div data-target="process" class="nav-card cursor-pointer bg-white p-6 rounded-xl shadow-sm border-2 border-transparent text-center">
+                <div class="text-4xl mb-3">⚙️</div>
+                <h3 class="text-xl font-bold text-slate-800">프로세스 관리</h3>
+                <p class="text-slate-500 text-sm">CPU 스케줄링과 동기화</p>
+            </div>
+            <div data-target="memory" class="nav-card cursor-pointer bg-white p-6 rounded-xl shadow-sm border-2 border-transparent text-center">
+                <div class="text-4xl mb-3">🧠</div>
+                <h3 class="text-xl font-bold text-slate-800">메모리 관리</h3>
+                <p class="text-slate-500 text-sm">가상 메모리와 페이지 교체</p>
+            </div>
+            <div data-target="filesystem" class="nav-card cursor-pointer bg-white p-6 rounded-xl shadow-sm border-2 border-transparent text-center">
+                <div class="text-4xl mb-3">🗂️</div>
+                <h3 class="text-xl font-bold text-slate-800">파일 시스템</h3>
+                <p class="text-slate-500 text-sm">데이터의 구조화 및 관리</p>
+            </div>
+             <div data-target="studyplan" class="nav-card cursor-pointer bg-white p-6 rounded-xl shadow-sm border-2 border-transparent text-center">
+                <div class="text-4xl mb-3">🎓</div>
+                <h3 class="text-xl font-bold text-slate-800">학습 로드맵</h3>
+                <p class="text-slate-500 text-sm">효과적인 OS 학습 전략</p>
+            </div>
+        </nav>
+
+        <main id="content-area">
+            <section id="process" class="content-section bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                <h2 class="text-2xl font-bold text-teal-700 mb-6">프로세스 관리: 실행의 기본 단위</h2>
+                <p class="mb-8 text-slate-700">프로세스 관리는 운영체제의 가장 중요한 기능 중 하나로, 프로그램의 생성부터 소멸까지 전체 생명주기를 책임집니다. 여러 프로세스가 한정된 CPU 자원을 공정하고 효율적으로 나눠 쓸 수 있도록 제어하는 'CPU 스케줄링'과 여러 프로세스가 공유 자원을 안전하게 사용하도록 돕는 '동기화'가 핵심입니다. 아래 시뮬레이터를 통해 이 개념들을 직접 확인해 보세요.</p>
+                
+                <div class="border-t pt-6 mb-10">
+                    <h3 class="text-xl font-semibold mb-4">CPU 스케줄링 시뮬레이터</h3>
+                    <div id="scheduler-controls" class="flex flex-wrap gap-3 mb-4">
+                        <button data-algo="FCFS" class="scheduler-btn btn-teal px-4 py-2 rounded-lg font-semibold">FCFS</button>
+                        <button data-algo="SJF" class="scheduler-btn btn-teal px-4 py-2 rounded-lg font-semibold">SJF (비선점)</button>
+                        <button data-algo="RR" class="scheduler-btn btn-teal px-4 py-2 rounded-lg font-semibold">Round Robin (q=2)</button>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="cpuChart"></canvas>
+                    </div>
+                    <div id="gantt-info" class="text-center mt-4 text-slate-600"></div>
+                </div>
+
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold mb-4">동기화 시뮬레이터: 생산자-소비자 문제</h3>
+                    <p class="mb-4 text-slate-700">생산자는 버퍼에 데이터를 넣고, 소비자는 버퍼에서 데이터를 꺼냅니다. 이때 동기화(예: 뮤텍스)가 없다면 데이터가 꼬이는 문제가 발생할 수 있습니다. 아래 시뮬레이션은 단 하나의 생산자/소비자만 동시에 버퍼에 접근할 수 있도록 동기화가 적용된 상태를 보여줍니다.</p>
+                    <div id="sync-simulator" class="p-6 bg-stone-100 rounded-lg">
+                        <div class="flex justify-center gap-4 mb-4">
+                            <button id="produce-btn" class="btn-teal px-4 py-2 rounded-lg font-semibold">생산자 (Produce)</button>
+                            <button id="consume-btn" class="btn-teal px-4 py-2 rounded-lg font-semibold">소비자 (Consume)</button>
+                        </div>
+                        <div class="flex justify-center items-center gap-2 mb-4">
+                            <span class="font-semibold text-sm">버퍼 상태:</span>
+                            <div id="buffer-container" class="flex border-2 border-slate-400 rounded-md p-1"></div>
+                        </div>
+                        <div id="sync-status" class="text-center font-semibold text-slate-700">준비됨</div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="memory" class="content-section bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                <h2 class="text-2xl font-bold text-teal-700 mb-6">메모리 관리: 한정된 공간의 효율적 활용</h2>
+                <p class="mb-8 text-slate-700">메모리 관리는 물리 메모리(RAM)보다 큰 프로그램을 실행할 수 있게 하는 '가상 메모리' 기술을 중심으로 이루어집니다. 가상 메모리는 실제 메모리보다 훨씬 큰 가상의 공간을 제공하며, 필요한 부분만 실제 메모리에 적재하는 '페이징' 기법을 사용합니다. 아래 시뮬레이터는 가상 메모리의 핵심인 페이지 교체 알고리즘이 어떻게 동작하는지 보여줍니다. 메모리가 가득 찼을 때 어떤 페이지를 내보낼지 결정하는 알고리즘의 성능을 직접 비교해 보세요.</p>
+
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold mb-4">가상 메모리 - 페이지 교체 시뮬레이터 (프레임: 3개)</h3>
+                    <div id="pager-controls" class="flex flex-wrap gap-3 mb-4">
+                        <button data-algo="FIFO" class="pager-btn btn-teal px-4 py-2 rounded-lg font-semibold">FIFO</button>
+                        <button data-algo="LRU" class="pager-btn btn-teal px-4 py-2 rounded-lg font-semibold">LRU</button>
+                    </div>
+                    <div class="mt-4 p-4 bg-stone-100 rounded-lg">
+                        <p class="font-mono text-center text-slate-700" id="page-string">페이지 참조열: </p>
+                    </div>
+                    <div class="flex justify-center items-center gap-4 my-6" id="memory-frames"></div>
+                    <div class="text-center text-lg font-semibold" id="page-fault-info"></div>
+                </div>
+            </section>
+
+            <section id="filesystem" class="content-section bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                 <h2 class="text-2xl font-bold text-teal-700 mb-6">파일 시스템: 데이터의 체계적인 관리</h2>
+                <p class="mb-8 text-slate-700">파일 시스템은 하드디스크나 SSD 같은 저장 장치에 데이터를 파일 단위로 저장하고, 이를 사용자가 쉽게 찾고 사용할 수 있도록 논리적인 구조(주로 디렉터리 트리)로 관리하는 역할을 합니다. 운영체제마다 다양한 파일 시스템(FAT, NTFS, ext4 등)을 지원하며, 각각의 특성과 장단점이 있습니다.</p>
+                
+                <div class="border-t pt-6">
+                    <h3 class="text-xl font-semibold mb-4">파일 시스템 종류 비교</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr>
+                                    <th class="border-b-2 p-4">파일 시스템</th>
+                                    <th class="border-b-2 p-4">주요 사용 OS</th>
+                                    <th class="border-b-2 p-4">특징</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="hover:bg-stone-50">
+                                    <td class="border-b p-4 font-semibold">FAT32</td>
+                                    <td class="border-b p-4">Windows, macOS, Linux</td>
+                                    <td class="border-b p-4">호환성이 매우 높으나, 4GB 이상 단일 파일 지원 불가</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50">
+                                    <td class="border-b p-4 font-semibold">NTFS</td>
+                                    <td class="border-b p-4">Windows</td>
+                                    <td class="border-b p-4">대용량 파일 및 보안, 압축, 저널링 등 고급 기능 지원</td>
+                                </tr>
+                                <tr class="hover:bg-stone-50">
+                                    <td class="border-b p-4 font-semibold">ext4</td>
+                                    <td class="border-b p-4">Linux</td>
+                                    <td class="border-b p-4">대용량 파일 시스템 지원, 저널링 기능으로 안정성 높음</td>
+                                </tr>
+                                 <tr class="hover:bg-stone-50">
+                                    <td class="border-b p-4 font-semibold">APFS</td>
+                                    <td class="border-b p-4">macOS, iOS</td>
+                                    <td class="border-b p-4">SSD에 최적화, 강력한 암호화, 스냅샷 기능 지원</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="studyplan" class="content-section bg-white p-8 rounded-xl shadow-sm border border-stone-200">
+                <h2 class="text-2xl font-bold text-teal-700 mb-6">효과적인 학습 로드맵</h2>
+                <p class="mb-8 text-slate-700">운영체제는 방대한 이론과 복잡한 내부 동작으로 인해 학습하기 어려운 분야일 수 있습니다. 하지만 체계적인 접근 방식을 따른다면 누구나 핵심 개념을 정복할 수 있습니다. 아래 제안된 학습 방안을 참고하여 자신만의 학습 계획을 세워보세요.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                    <div class="bg-teal-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-teal-800 mb-2">📚 이론 학습</h3>
+                        <p class="text-teal-900">신뢰할 수 있는 교재(예: '공룡책' Operating System Concepts)나 온라인 강의를 통해 기본 개념과 원리를 탄탄히 다집니다. 용어에 익숙해지는 것이 첫걸음입니다.</p>
+                    </div>
+                    <div class="bg-sky-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-sky-800 mb-2">💻 실습 병행</h3>
+                        <p class="text-sky-900">이론으로 배운 스케줄링, 동기화 문제, 메모리 관리 기법을 간단한 코드로 직접 구현해봅니다. 시뮬레이터를 만들어보는 것은 개념을 완전히 자기 것으로 만드는 최고의 방법입니다.</p>
+                    </div>
+                    <div class="bg-amber-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-amber-800 mb-2">🗣️ 질문과 토론</h3>
+                        <p class="text-amber-900">스터디 그룹이나 온라인 커뮤니티에서 동료들과 함께 토론하며 궁금증을 해결합니다. 다른 사람에게 개념을 설명해보는 과정에서 이해도가 급격히 상승합니다.</p>
+                    </div>
+                    <div class="bg-rose-50 p-6 rounded-lg">
+                        <h3 class="font-bold text-lg text-rose-800 mb-2">🔍 커널 분석</h3>
+                        <p class="text-rose-900">학습에 깊이를 더하고 싶다면, Linux와 같은 오픈소스 운영체제의 소스 코드를 직접 분석해보는 것에 도전해 보세요. 실제 OS가 어떻게 동작하는지 엿볼 수 있는 귀중한 경험입니다.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const navCards = document.querySelectorAll('.nav-card');
+            const contentSections = document.querySelectorAll('.content-section');
+            let activeSectionId = null;
+
+            function showContent(targetId) {
+                if (activeSectionId === targetId) {
+                    document.getElementById(targetId).classList.remove('active');
+                    document.querySelector(`[data-target="${targetId}"]`).classList.remove('active');
+                    activeSectionId = null;
+                    return;
+                }
+
+                navCards.forEach(card => card.classList.remove('active'));
+                contentSections.forEach(section => section.classList.remove('active'));
+
+                const targetSection = document.getElementById(targetId);
+                const targetCard = document.querySelector(`[data-target="${targetId}"]`);
+                
+                if (targetSection) {
+                    targetSection.classList.add('active');
+                    if(targetCard) targetCard.classList.add('active');
+                    activeSectionId = targetId;
+                }
+            }
+
+            navCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetId = card.getAttribute('data-target');
+                    showContent(targetId);
+                });
+            });
+
+            // CPU Scheduler
+            const schedulerControls = document.getElementById('scheduler-controls');
+            const schedulerBtns = schedulerControls.querySelectorAll('.scheduler-btn');
+            const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+            let cpuChart;
+            const processes = [
+                { id: 'P1', arrival: 0, burst: 7, color: 'rgba(255, 99, 132, 0.6)' },
+                { id: 'P2', arrival: 2, burst: 4, color: 'rgba(54, 162, 235, 0.6)' },
+                { id: 'P3', arrival: 4, burst: 1, color: 'rgba(255, 206, 86, 0.6)' },
+                { id: 'P4', arrival: 5, burst: 4, color: 'rgba(75, 192, 192, 0.6)' },
+            ];
+
+            function runScheduler(algo) {
+                let ganttData = [];
+                let currentTime = 0;
+                let remainingProcesses = JSON.parse(JSON.stringify(processes)).map(p => ({ ...p, remaining: p.burst }));
+                let readyQueue = [];
+                let ganttInfo = { waitTime: 0, turnaroundTime: 0, processCount: processes.length };
+                
+                let timeline = [];
+
+                if (algo === 'FCFS') {
+                    remainingProcesses.sort((a, b) => a.arrival - b.arrival);
+                    remainingProcesses.forEach(p => {
+                        if (currentTime < p.arrival) {
+                            currentTime = p.arrival;
+                        }
+                        const finishTime = currentTime + p.burst;
+                        ganttInfo.waitTime += currentTime - p.arrival;
+                        ganttInfo.turnaroundTime += finishTime - p.arrival;
+                        timeline.push({ process: p.id, start: currentTime, end: finishTime, color: p.color });
+                        currentTime = finishTime;
+                    });
+                } else if (algo === 'SJF') {
+                     let completed = 0;
+                     while(completed < processes.length) {
+                        let available = remainingProcesses.filter(p => p.arrival <= currentTime && p.remaining > 0);
+                        if (available.length === 0) {
+                            currentTime++;
+                            continue;
+                        }
+                        available.sort((a,b) => a.burst - b.burst);
+                        let p = available[0];
+                        
+                        const finishTime = currentTime + p.burst;
+                        ganttInfo.waitTime += currentTime - p.arrival;
+                        ganttInfo.turnaroundTime += finishTime - p.arrival;
+                        timeline.push({ process: p.id, start: currentTime, end: finishTime, color: p.color });
+                        currentTime = finishTime;
+                        p.remaining = 0;
+                        completed++;
+                     }
+                } else if (algo === 'RR') {
+                    const quantum = 2;
+                    let queue = [];
+                    let time = 0;
+                    let processIndex = 0;
+
+                    while (remainingProcesses.some(p => p.remaining > 0)) {
+                        while(processIndex < remainingProcesses.length && remainingProcesses[processIndex].arrival <= time) {
+                            queue.push(remainingProcesses[processIndex]);
+                            processIndex++;
+                        }
+
+                        if (queue.length > 0) {
+                            let p = queue.shift();
+                            let execTime = Math.min(quantum, p.remaining);
+                            
+                            timeline.push({ process: p.id, start: time, end: time + execTime, color: p.color });
+                            p.remaining -= execTime;
+                            time += execTime;
+
+                            while(processIndex < remainingProcesses.length && remainingProcesses[processIndex].arrival <= time) {
+                                queue.push(remainingProcesses[processIndex]);
+                                processIndex++;
+                            }
+
+                            if (p.remaining > 0) {
+                                queue.push(p);
+                            } else {
+                                ganttInfo.turnaroundTime += time - p.arrival;
+                                ganttInfo.waitTime += (time - p.arrival) - p.burst;
+                            }
+                        } else {
+                            time++;
+                        }
+                    }
+                }
+
+                drawGanttChart(timeline, ganttInfo);
+            }
+
+            function drawGanttChart(timeline, info) {
+                if (cpuChart) {
+                    cpuChart.destroy();
+                }
+                const labels = timeline.map(t => t.process);
+                const data = {
+                    labels: [...new Set(labels)],
+                    datasets: timeline.map(item => ({
+                        label: item.process,
+                        data: [{
+                            x: [item.start, item.end],
+                            y: item.process
+                        }],
+                        backgroundColor: item.color,
+                        borderColor: item.color.replace('0.6', '1'),
+                        borderWidth: 1,
+                        barPercentage: 0.5,
+                        categoryPercentage: 0.8
+                    }))
+                };
+
+                cpuChart = new Chart(cpuCtx, {
+                    type: 'bar',
+                    data: data,
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.raw.y}: [${context.raw.x[0]}, ${context.raw.x[1]}]`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                min: 0,
+                                title: {
+                                    display: true,
+                                    text: 'Time'
+                                },
+                                ticks: {
+                                    stepSize: 1
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Processes'
+                                }
+                            }
+                        }
+                    }
+                });
+                
+                const avgWait = (info.waitTime / info.processCount).toFixed(2);
+                const avgTurnaround = (info.turnaroundTime / info.processCount).toFixed(2);
+                document.getElementById('gantt-info').textContent = `평균 대기 시간: ${avgWait}, 평균 반환 시간: ${avgTurnaround}`;
+            }
+
+            schedulerControls.addEventListener('click', (e) => {
+                if (e.target.classList.contains('scheduler-btn')) {
+                    const algo = e.target.dataset.algo;
+                    schedulerBtns.forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    runScheduler(algo);
+                }
+            });
+
+            // Synchronization Simulator
+            const bufferContainer = document.getElementById('buffer-container');
+            const produceBtn = document.getElementById('produce-btn');
+            const consumeBtn = document.getElementById('consume-btn');
+            const syncStatusEl = document.getElementById('sync-status');
+            const bufferSize = 5;
+            let buffer = [];
+            let isLocked = false;
+
+            function renderBuffer() {
+                bufferContainer.innerHTML = '';
+                for (let i = 0; i < bufferSize; i++) {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = `w-8 h-8 flex items-center justify-center border rounded-sm font-bold text-white`;
+                    if (buffer[i]) {
+                        itemEl.textContent = buffer[i];
+                        itemEl.style.backgroundColor = '#0d9488';
+                        itemEl.style.borderColor = '#0f766e';
+                    } else {
+                        itemEl.textContent = ' ';
+                        itemEl.style.backgroundColor = '#e5e7eb';
+                        itemEl.style.borderColor = '#d1d5db';
+                    }
+                    bufferContainer.appendChild(itemEl);
+                }
+            }
+
+            function produce() {
+                if (isLocked) {
+                    syncStatusEl.textContent = '다른 프로세스가 버퍼를 사용 중입니다. 잠시 기다려주세요.';
+                    return;
+                }
+                isLocked = true;
+                syncStatusEl.textContent = '생산자: 버퍼에 접근 중...';
+                
+                setTimeout(() => {
+                    if (buffer.length < bufferSize) {
+                        buffer.push('D');
+                        syncStatusEl.textContent = '생산자: 데이터 추가 완료!';
+                    } else {
+                        syncStatusEl.textContent = '생산자: 버퍼가 가득 찼습니다. 생산 실패.';
+                    }
+                    renderBuffer();
+                    isLocked = false;
+                }, 500);
+            }
+
+            function consume() {
+                if (isLocked) {
+                    syncStatusEl.textContent = '다른 프로세스가 버퍼를 사용 중입니다. 잠시 기다려주세요.';
+                    return;
+                }
+                isLocked = true;
+                syncStatusEl.textContent = '소비자: 버퍼에 접근 중...';
+                
+                setTimeout(() => {
+                    if (buffer.length > 0) {
+                        buffer.shift();
+                        syncStatusEl.textContent = '소비자: 데이터 제거 완료!';
+                    } else {
+                        syncStatusEl.textContent = '소비자: 버퍼가 비어있습니다. 소비 실패.';
+                    }
+                    renderBuffer();
+                    isLocked = false;
+                }, 500);
+            }
+
+            produceBtn.addEventListener('click', produce);
+            consumeBtn.addEventListener('click', consume);
+            renderBuffer();
+
+            // Page Replacement Simulator
+            const pagerControls = document.getElementById('pager-controls');
+            const pagerBtns = pagerControls.querySelectorAll('.pager-btn');
+            const pageStringEl = document.getElementById('page-string');
+            const memoryFramesEl = document.getElementById('memory-frames');
+            const pageFaultInfoEl = document.getElementById('page-fault-info');
+            const pageReferenceString = [7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0, 3, 2, 1, 2, 0, 1, 7, 0, 1];
+            const frameCount = 3;
+
+            function runPager(algo) {
+                let frames = Array(frameCount).fill(null);
+                let pageFaults = 0;
+                let history = [];
+                let recentlyUsed = []; 
+
+                pageReferenceString.forEach(page => {
+                    let snapshot = { page, frames: [...frames], fault: false };
+                    if (!frames.includes(page)) {
+                        pageFaults++;
+                        snapshot.fault = true;
+                        if (frames.includes(null)) {
+                            const emptyIndex = frames.indexOf(null);
+                            frames[emptyIndex] = page;
+                        } else {
+                            if (algo === 'FIFO') {
+                                frames.shift();
+                                frames.push(page);
+                            } else if (algo === 'LRU') {
+                                const lruPage = recentlyUsed.shift();
+                                const lruIndex = frames.indexOf(lruPage);
+                                frames[lruIndex] = page;
+                            }
+                        }
+                    }
+                    
+                    if (algo === 'LRU') {
+                        const index = recentlyUsed.indexOf(page);
+                        if (index > -1) {
+                            recentlyUsed.splice(index, 1);
+                        }
+                        recentlyUsed.push(page);
+                    }
+                    snapshot.frames = [...frames];
+                    history.push(snapshot);
+                });
+
+                displayPagerResults(history, pageFaults);
+            }
+
+            function displayPagerResults(history, faults) {
+                memoryFramesEl.innerHTML = '';
+                
+                history.forEach((step, index) => {
+                    const stepEl = document.createElement('div');
+                    stepEl.className = 'flex flex-col items-center gap-2 p-2';
+                    
+                    const pageEl = document.createElement('div');
+                    pageEl.className = `w-12 h-12 flex items-center justify-center font-bold text-lg rounded-full mb-2 ${step.fault ? 'bg-red-200 text-red-800' : 'bg-green-200 text-green-800'}`;
+                    pageEl.textContent = step.page;
+                    stepEl.appendChild(pageEl);
+
+                    step.frames.forEach(frame => {
+                        const frameEl = document.createElement('div');
+                        frameEl.className = 'w-12 h-12 flex items-center justify-center border-2 rounded bg-white font-semibold';
+                        frameEl.textContent = frame === null ? '-' : frame;
+                        stepEl.appendChild(frameEl);
+                    });
+                    
+                    memoryFramesEl.appendChild(stepEl);
+                });
+
+                pageFaultInfoEl.textContent = `총 페이지 부재(Page Faults): ${faults}`;
+            }
+
+            pagerControls.addEventListener('click', (e) => {
+                if (e.target.classList.contains('pager-btn')) {
+                    const algo = e.target.dataset.algo;
+                    pagerBtns.forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    runPager(algo);
+                }
+            });
+
+            pageStringEl.textContent += pageReferenceString.join(', ');
+            
+            // Initial state
+            showContent('process');
+            document.querySelector('.scheduler-btn[data-algo="FCFS"]').click();
+            document.querySelector('.nav-card[data-target="process"]').classList.add('active');
+        });
+    </script>
+</body>
+</html>
