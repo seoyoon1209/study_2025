@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대화형 프레임워크 이론 학습</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Tech (#FDFBF7, #3D405B, #81B29A) -->
+    <!-- Application Structure Plan: The application transforms the linear report into an interactive learning experience. It uses a tab-based navigation for the three core concepts (IoC, CoC, Abstraction) to allow non-linear exploration. Each concept features a side-by-side layout with explanations and an interactive code viewer, where users can toggle between "before" and "after" framework examples. This direct comparison is key for understanding. The application concludes with a visually distinct card-based summary of benefits and a Chart.js bar chart to quantitatively visualize the impact of using frameworks. This structure was chosen to enhance engagement and comprehension by moving from passive reading to active exploration and comparison. -->
+    <!-- Visualization & Content Choices: Report Info: Core framework theories -> Goal: Explain, Compare, Summarize -> Viz/Presentation: Interactive tabs and code blocks, icon-based cards, and a bar chart -> Interaction: Users click tabs to switch concepts and buttons to toggle code examples; chart tooltips provide data on hover -> Justification: This multi-faceted approach caters to different learning styles. Interactive code blocks provide concrete examples, cards offer scannable summaries, and the chart delivers a powerful data-driven visual conclusion, reinforcing the overall message more effectively than text alone. -> Library/Method: Vanilla JS for interactivity, Chart.js for visualization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FDFBF7;
+            color: #3D405B;
+        }
+        .tab-active {
+            background-color: #81B29A;
+            color: #FDFBF7;
+            font-weight: 700;
+        }
+        .tab-inactive {
+            background-color: #F4F1DE;
+            color: #3D405B;
+        }
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            font-family: 'D2Coding', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .btn-toggle {
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-toggle-active {
+            background-color: #81B29A;
+            color: white;
+            font-weight: 500;
+        }
+        .btn-toggle-inactive {
+            background-color: #E07A5F;
+            color: white;
+        }
+        .benefit-card {
+            background-color: #F4F1DE;
+            border-left: 4px solid #81B29A;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .benefit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="text-center py-10 bg-white shadow-sm">
+        <h1 class="text-4xl font-bold tracking-tight">프레임워크 핵심 이론</h1>
+        <p class="mt-2 text-lg text-gray-600">소프트웨어 개발의 뼈대를 이해하는 대화형 가이드</p>
+    </header>
+
+    <main class="container mx-auto px-4 py-12">
+        <section id="intro" class="text-center max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold mb-4">프레임워크란 무엇일까요?</h2>
+            <p class="text-lg leading-relaxed">
+                프레임워크는 소프트웨어 개발을 위한 일종의 '뼈대'나 '기반 구조'입니다. 단순히 특정 기능을 제공하는 라이브러리를 넘어, 개발의 전반적인 흐름과 규칙을 미리 정해줍니다. 개발자는 이 뼈대에 맞춰 핵심 비즈니스 로직, 즉 '살'을 채워 넣는 방식으로 애플리케이션을 완성하게 됩니다. 이 페이지를 통해 프레임워크의 핵심 이론을 대화형으로 탐색해 보세요.
+            </p>
+        </section>
+
+        <section id="core-concepts" class="mt-16">
+            <h2 class="text-3xl font-bold text-center mb-8">핵심 이론 및 개념</h2>
+            <div id="tabs" class="flex justify-center gap-2 md:gap-4 mb-8 flex-wrap">
+                <button data-concept="ioc" class="tab-btn px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium tab-active">제어의 역전 (IoC)</button>
+                <button data-concept="coc" class="tab-btn px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium tab-inactive">관습 기반 설정 (CoC)</button>
+                <button data-concept="abstraction" class="tab-btn px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium tab-inactive">추상화와 캡슐화</button>
+            </div>
+
+            <div id="concept-content" class="bg-white p-6 md:p-8 rounded-xl shadow-lg min-h-[400px]">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <article id="explanation-area">
+                        <h3 id="concept-title" class="text-2xl font-bold mb-4"></h3>
+                        <p id="concept-description" class="text-base leading-relaxed"></p>
+                    </article>
+                    <div id="code-area">
+                        <div class="flex gap-2 mb-4">
+                            <button id="btn-before" class="btn-toggle flex-1 py-2 rounded-md btn-toggle-inactive">프레임워크 없을 때</button>
+                            <button id="btn-after" class="btn-toggle flex-1 py-2 rounded-md btn-toggle-active">프레임워크 사용 시</button>
+                        </div>
+                        <div class="code-block p-4 rounded-lg text-sm overflow-x-auto">
+                            <code id="code-display"></code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="benefits" class="mt-16">
+            <h2 class="text-3xl font-bold text-center mb-8">프레임워크 사용의 이점</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="benefit-card p-6 rounded-lg">
+                    <div class="text-3xl mb-3">🚀</div>
+                    <h3 class="text-xl font-bold mb-2">생산성 향상</h3>
+                    <p>반복적인 코드와 복잡한 설정 작업을 줄여 핵심 기능 개발에 집중할 수 있습니다.</p>
+                </div>
+                <div class="benefit-card p-6 rounded-lg">
+                    <div class="text-3xl mb-3">🛠️</div>
+                    <h3 class="text-xl font-bold mb-2">유지보수성 향상</h3>
+                    <p>체계적인 구조와 모듈화를 통해 코드를 더 쉽게 관리하고 재사용할 수 있습니다.</p>
+                </div>
+                <div class="benefit-card p-6 rounded-lg">
+                    <div class="text-3xl mb-3">🛡️</div>
+                    <h3 class="text-xl font-bold mb-2">안정성 및 보안</h3>
+                    <p>전 세계 개발자들에 의해 검증된 구조와 기능을 사용하여 안정성과 보안성이 높습니다.</p>
+                </div>
+                <div class="benefit-card p-6 rounded-lg">
+                    <div class="text-3xl mb-3">🤝</div>
+                    <h3 class="text-xl font-bold mb-2">개발 표준화</h3>
+                    <p>팀원 간의 개발 방식이 통일되어 협업이 용이해지고 코드 품질이 일관됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="visualization" class="mt-16">
+            <h2 class="text-3xl font-bold text-center mb-8">프레임워크 효과 시각화</h2>
+            <p class="text-center max-w-2xl mx-auto mb-8">
+                프레임워크를 사용하면 개발 시간과 코드 복잡도가 어떻게 변하는지 차트로 확인해 보세요. 막대에 마우스를 올리면 구체적인 수치를 볼 수 있습니다.
+            </p>
+            <div class="bg-white p-4 md:p-8 rounded-xl shadow-lg">
+                <div class="chart-container relative w-full max-w-3xl mx-auto h-80 md:h-96">
+                    <canvas id="impactChart"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="text-center py-6 mt-12 bg-gray-100">
+        <p class="text-gray-600">대화형 프레임워크 학습 가이드</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const contentData = {
+                ioc: {
+                    title: '제어의 역전 (Inversion of Control, IoC)',
+                    description: '가장 중요한 개념으로, 개발자가 아닌 프레임워크가 프로그램의 전체 흐름을 제어합니다. 개발자의 코드는 필요할 때 프레임워크에 의해 호출됩니다. 이는 개발자가 핵심 기능 구현에만 집중할 수 있도록 돕습니다.',
+                    code: {
+                        before: `function getUserList() {
+  // 사용자 데이터를 가져오는 복잡한 로직
+  return [ { name: 'Alice' }, { name: 'Bob' } ];
+}
+
+// 개발자가 직접 함수를 호출하고 흐름을 제어
+const users = getUserList();
+displayUsers(users);`,
+                        after: `import React, { useEffect, useState } from 'react';
+
+function UserList() {
+  const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    // 프레임워크(React)가 이 함수를 호출
+    const fetchedUsers = [{ name: 'Alice' }, { name: 'Bob' }];
+    setUsers(fetchedUsers);
+  }, []);
+
+  return (
+    <ul>
+      {users.map(user => <li>{user.name}</li>)}
+    </ul>
+  );
+}`
+                    }
+                },
+                coc: {
+                    title: '관습 기반 설정 (Convention over Configuration)',
+                    description: '개발자가 복잡한 설정을 일일이 하지 않도록, 프레임워크가 미리 정해진 규칙과 관습을 따르도록 유도합니다. 예를 들어, 특정 이름의 파일이나 폴더는 프레임워크가 자동으로 인식하여 특정 기능과 연결합니다. 이는 설정의 번거로움을 크게 줄여줍니다.',
+                    code: {
+                        before: `<!-- 복잡한 XML 설정 파일 -->
+<beans>
+  <bean id="userController" class="com.example.UserController">
+    <property name="userService" ref="userService" />
+  </bean>
+  <bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
+    <property name="mappings">
+      <props>
+        <prop key="/users/">userController</prop>
+      </props>
+    </property>
+  </bean>
+</beans>`,
+                        after: `# my_app/urls.py (Django)
+from django.urls import path
+from . import views
+
+# 관습에 따라 파일에 경로를 정의하면
+# 프레임워크가 자동으로 인식하고 연결
+urlpatterns = [
+    path('users/', views.user_list),
+]`
+                    }
+                },
+                abstraction: {
+                    title: '추상화와 캡슐화',
+                    description: '데이터베이스 연결, 보안, 세션 관리 등 복잡하고 반복적인 기능들을 프레임워크가 추상화하여 단순한 인터페이스로 제공합니다. 개발자는 내부의 복잡한 동작 원리를 몰라도, 프레임워크가 제공하는 간편한 API를 사용하여 쉽게 기능을 구현할 수 있습니다.',
+                    code: {
+                        before: `public User findUserByName(String name) {
+  Connection conn = null;
+  PreparedStatement pstmt = null;
+  ResultSet rs = null;
+  String sql = "SELECT * FROM users WHERE name = ?";
+  
+  try {
+    conn = dataSource.getConnection();
+    pstmt = conn.prepareStatement(sql);
+    pstmt.setString(1, name);
+    rs = pstmt.executeQuery();
+    // ... 결과 처리, 예외 처리, 자원 반납 등 복잡한 로직
+  } finally {
+    // ... close(rs, pstmt, conn)
+  }
+}`,
+                        after: `// Spring Data JPA
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
+  // 메서드 이름이라는 간단한 규칙만으로
+  // 프레임워크가 SQL 쿼리를 자동 생성 및 실행
+  User findByName(String name);
+}`
+                    }
+                }
+            };
+
+            const conceptTitle = document.getElementById('concept-title');
+            const conceptDescription = document.getElementById('concept-description');
+            const codeDisplay = document.getElementById('code-display');
+            const tabs = document.querySelectorAll('.tab-btn');
+            const btnBefore = document.getElementById('btn-before');
+            const btnAfter = document.getElementById('btn-after');
+
+            let currentConcept = 'ioc';
+            let currentCodeView = 'after';
+
+            function updateContent() {
+                const data = contentData[currentConcept];
+                conceptTitle.textContent = data.title;
+                conceptDescription.textContent = data.description;
+                updateCode();
+            }
+
+            function updateCode() {
+                codeDisplay.textContent = contentData[currentConcept].code[currentCodeView];
+            }
+
+            function updateButtons() {
+                if (currentCodeView === 'before') {
+                    btnBefore.classList.replace('btn-toggle-inactive', 'btn-toggle-active');
+                    btnAfter.classList.replace('btn-toggle-active', 'btn-toggle-inactive');
+                } else {
+                    btnAfter.classList.replace('btn-toggle-inactive', 'btn-toggle-active');
+                    btnBefore.classList.replace('btn-toggle-active', 'btn-toggle-inactive');
+                }
+            }
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    currentConcept = tab.dataset.concept;
+                    tabs.forEach(t => t.classList.replace('tab-active', 'tab-inactive'));
+                    tab.classList.replace('tab-inactive', 'tab-active');
+                    updateContent();
+                });
+            });
+
+            btnBefore.addEventListener('click', () => {
+                currentCodeView = 'before';
+                updateCode();
+                updateButtons();
+            });
+
+            btnAfter.addEventListener('click', () => {
+                currentCodeView = 'after';
+                updateCode();
+                updateButtons();
+            });
+
+            const ctx = document.getElementById('impactChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['개발 시간', '코드 복잡도'],
+                    datasets: [{
+                        label: '프레임워크 없을 때',
+                        data: [100, 85],
+                        backgroundColor: '#E07A5F',
+                        borderColor: '#E07A5F',
+                        borderWidth: 1
+                    }, {
+                        label: '프레임워크 사용 시',
+                        data: [40, 25],
+                        backgroundColor: '#81B29A',
+                        borderColor: '#81B29A',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '상대적 수치'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.x !== null) {
+                                        label += context.parsed.x;
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            updateContent();
+        });
+    </script>
+</body>
+</html>
